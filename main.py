@@ -12,7 +12,7 @@ x = 1
 y = 1
 snake_sqrs = [(x, y)]
 direction = "right"
-apple_x = random.randint(0, settings.pula - 1)
+apple_x = random.randint(0, settings.screen_sq_x - 1)
 apple_y = random.randint(0, settings.screen_sq_y - 1)
 
 
@@ -66,14 +66,14 @@ def move_snake():
 
 def calculate_boundaries():
     global x, y
-    if x >= settings.pula:
+    if x >= settings.screen_sq_x:
         x = -1
         y += 1
     elif y >= settings.screen_sq_y:
         y = -1
         x += 1
     elif x < 0:
-        x = settings.pula
+        x = settings.screen_sq_x
         y -= 1
     elif y < 0:
         y = settings.screen_sq_y
@@ -83,7 +83,7 @@ def calculate_boundaries():
 def render():
     # Reset
     screen.fill(settings.screen_bg_color)
-    for i in range(0, settings.pula):
+    for i in range(0, settings.screen_sq_x):
         for j in range(0, settings.screen_sq_y):
             pygame.draw.rect(
                 screen,
@@ -137,7 +137,7 @@ while running:
     move_snake()
 
     if x == apple_x and y == apple_y:
-        apple_x = random.randint(0, settings.pula - 1)
+        apple_x = random.randint(0, settings.screen_sq_x - 1)
         apple_y = random.randint(0, settings.screen_sq_y - 1)
 
         snake_sqrs.append(snake_sqrs[-1])

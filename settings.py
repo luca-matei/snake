@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     snake_color: str = "#00ff00"
     apple_color: str = "#ff0000"
     sq_size: int = 30  # px
-    pula: int = screen_w // sq_size
+    screen_sq_x: int = screen_w // sq_size
     screen_sq_y: int = screen_h // sq_size
     fps: int = 5
 
