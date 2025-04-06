@@ -1,154 +1,99 @@
-import random
 import pygame
-
-from settings import settings
+import random
 
 pygame.init()
-screen = pygame.display.set_mode((settings.screen_w, settings.screen_h))
+window_x = 1260  # Window width in px
+window_y = 720  # Window height in px
+screen = pygame.display.set_mode((window_x, window_y))
 clock = pygame.time.Clock()
 running = True
 
-x = 1
-y = 1
-snake_sqrs = [(x, y)]
-direction = "right"
-apple_x = random.randint(0, settings.screen_sq_x - 1)
-apple_y = random.randint(0, settings.screen_sq_y - 1)
 
+sq_size = 30  # Square size in px
+sqrs_x = int(window_x / sq_size)  # Number of squares in x snake_dir
+sqrs_y = int(window_y / sq_size)  # Number of squares in y snake_dir
+snake_pos = [2, 3]  # Snake position
+apple_pos = [4, 5]  # Apple position
+snake_dir = "right"  # Snake direction
 
-def calculate_direction(_event):
-    global direction
-    if _event.key == pygame.K_UP:
-        if direction != "down":
-            direction = "up"
-
-    elif _event.key == pygame.K_DOWN:
-        if direction != "up":
-            direction = "down"
-
-    elif _event.key == pygame.K_LEFT:
-        if direction != "right":
-            direction = "left"
-
-    elif _event.key == pygame.K_RIGHT:
-        if direction != "left":
-            direction = "right"
-
-
-def calculate_key_press():
-    global running
+while running:
     for event in pygame.event.get():
+        # Check for quit window event
         if event.type == pygame.QUIT:
             running = False
 
+        # Check for key press event
         elif event.type == pygame.KEYDOWN:
-            if event.key in [pygame.K_q, pygame.K_ESCAPE]:
+            # ESCAPE key to quit
+            if event.key == pygame.K_ESCAPE:
                 running = False
-                break
 
-            calculate_direction(event)
+            # Arrow keys to change direction
+            # Note: We check for the opposite direction to prevent the snake from going back on itself
+            elif event.key == pygame.K_UP and snake_dir != "down":
+                snake_dir = "up"
+            elif event.key == pygame.K_LEFT and snake_dir != "right":
+                snake_dir = "left"
+            elif event.key == pygame.K_RIGHT and snake_dir != "left":
+                snake_dir = "right"
+            elif event.key == pygame.K_DOWN and snake_dir != "up":
+                snake_dir = "down"
 
+    # Move snake
+    if snake_dir == "up":
+        snake_pos[1] -= 1
+    elif snake_dir == "right":
+        snake_pos[0] += 1
+    elif snake_dir == "down":
+        snake_pos[1] += 1
+    elif snake_dir == "left":
+        snake_pos[0] -= 1
 
-def move_snake():
-    global x, y, snake_sqrs
+    # Check for collision with walls
+    # Upper margin
+    if snake_pos[1] == -1:
+        snake_pos[1] = sqrs_y - 1
+    # Left margin
+    elif snake_pos[0] == -1:
+        snake_pos[0] = sqrs_x - 1
+    # Lower margin
+    elif snake_pos[1] == sqrs_y:
+        snake_pos[1] = 0
+    # Right margin
+    elif snake_pos[0] == sqrs_x:
+        snake_pos[0] = 0
 
-    if direction == "up":
-        y -= 1
-    elif direction == "down":
-        y += 1
-    elif direction == "left":
-        x -= 1
-    elif direction == "right":
-        x += 1
+    # Check for collision with apple
+    if snake_pos == apple_pos:
+        # Generate new apple position
+        apple_pos[0] = random.randint(0, sqrs_x - 1)
+        apple_pos[1] = random.randint(0, sqrs_y - 1)
 
-    snake_sqrs = [(x, y)] + snake_sqrs[:-1]
+    # Render background
+    screen.fill("yellow")
 
-
-def calculate_boundaries():
-    global x, y
-    if x >= settings.screen_sq_x:
-        x = -1
-        y += 1
-    elif y >= settings.screen_sq_y:
-        y = -1
-        x += 1
-    elif x < 0:
-        x = settings.screen_sq_x
-        y -= 1
-    elif y < 0:
-        y = settings.screen_sq_y
-        x -= 1
-
-
-def render():
-    # Reset
-    screen.fill(settings.screen_bg_color)
-    for i in range(0, settings.screen_sq_x):
-        for j in range(0, settings.screen_sq_y):
+    # Render grid
+    for i in range(0, sqrs_x):
+        for j in range(0, sqrs_y):
             pygame.draw.rect(
-                screen,
-                settings.border_color,
-                (i * settings.sq_size, j * settings.sq_size, settings.sq_size, settings.sq_size),
-            )
-            pygame.draw.rect(
-                screen,
-                settings.screen_bg_color,
-                (
-                    i * settings.sq_size + 1,
-                    j * settings.sq_size + 1,
-                    settings.sq_size - 2,
-                    settings.sq_size - 2,
-                ),
+                screen, "#eeee00", (i * sq_size, j * sq_size, sq_size, sq_size), 1
             )
 
-    # Draw apple
+    # Render Apple
     pygame.draw.rect(
         screen,
-        settings.apple_color,
-        (
-            apple_x * settings.sq_size,
-            apple_y * settings.sq_size,
-            settings.sq_size,
-            settings.sq_size,
-        ),
+        "red",
+        (apple_pos[0] * sq_size, apple_pos[1] * sq_size, sq_size, sq_size),
     )
 
-    # Draw snake
-    for sx, sy in snake_sqrs:
-        pygame.draw.rect(
-            screen,
-            settings.snake_color,
-            (
-                sx * settings.sq_size,
-                sy * settings.sq_size,
-                settings.sq_size,
-                settings.sq_size,
-            ),
-        )
+    # Render Snake
+    pygame.draw.rect(
+        screen,
+        "green",
+        (snake_pos[0] * sq_size, snake_pos[1] * sq_size, sq_size, sq_size),
+    )
 
     pygame.display.flip()
-    clock.tick(settings.fps)
-
-
-while running:
-    hit_apple = False
-
-    calculate_key_press()
-    move_snake()
-
-    if x == apple_x and y == apple_y:
-        apple_x = random.randint(0, settings.screen_sq_x - 1)
-        apple_y = random.randint(0, settings.screen_sq_y - 1)
-
-        snake_sqrs.append(snake_sqrs[-1])
-        hit_apple = True
-
-    if not hit_apple:
-        if (x, y) in snake_sqrs[1:]:
-            pygame.quit()
-            raise Exception("Game Over!")
-
-    calculate_boundaries()
-    render()
+    clock.tick(5)
 
 pygame.quit()
